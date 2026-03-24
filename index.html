@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Solarius - Édition Kahoot</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:transparent !important;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+
+/* Dimensions augmentées de 20% pour Genially 16:9 (1080x607) */
+#qc{
+  width:1080px;
+  height:607px;
+  background:transparent;
+  position:relative;
+  margin:0 auto;
+  transform:scale(1);
+  transform-origin:center;
+}
+
+/* === ARRIÈRE-PLAN TRANSPARENT À 50% AVEC FLUR === */
+#qc::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(46, 204, 113, 0.25); /* Vert transparent à 50% */
+  backdrop-filter:blur(5px);
+  border-radius:25px;
+  pointer-events:none;
+  z-index:-1;
+  border:2px solid rgba(255,255,255,0.2);
+}
+
+/* === EFFET KAHOOT - VERSION +20% === */
+#score{
+  position:absolute;
+  top:18px;
+  left:18px;
+  font-size:22px;
+  font-weight:800;
+  color:white;
+  background:#2b5f8a;
+  padding:8px 18px;
+  border-radius:12px 12px 12px 0;
+  box-shadow:0 5px 0 #1a3b55, 0 6px 15px rgba(0,0,0,0.3);
+  backdrop-filter:blur(8px);
+  border-left:3px solid #ffd966;
+  transform:skewX(-2deg);
+  z-index:10;
+}
+
+#timer{
+  position:absolute;
+  top:18px;
+  right:18px;
+  font-size:29px;
+  font-weight:800;
+  color:white;
+  padding:8px 22px;
+  border-radius:12px 12px 0 12px;
+  background:#c23b3b;
+  box-shadow:0 5px 0 #7a2525, 0 6px 15px rgba(0,0,0,0.3);
+  backdrop-filter:blur(8px);
+  min-width:84px;
+  text-align:center;
+  border-right:3px solid #ffb347;
+  transform:skewX(2deg);
+  z-index:10;
+}
+#timer.warn{
+  background:#ff5252;
+  animation:pulseKahoot 0.6s infinite;
+  box-shadow:0 5px 0 #b33b3b, 0 0 24px #ff5252;
+}
+
+@keyframes pulseKahoot{
+  0%,100%{transform:skewX(2deg) scale(1);}
+  50%{transform:skewX(2deg) scale(1.08);}
+}
+
+#pn{
+  position:absolute;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:17px;
+  font-weight:700;
+  color:white;
+  background:#6c4fa3;
+  padding:8px 22px;
+  border-radius:24px 24px 24px 0;
+  box-shadow:0 4px 0 #3f2e62, 0 5px 12px rgba(0,0,0,0.2);
+  backdrop-filter:blur(8px);
+  border-bottom:2px solid #ffd966;
+  letter-spacing:0.4px;
+  white-space:nowrap;
+}
+
+#avatar{
+  position:absolute;
+  top:72px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:38px;
+  background:#ffd966;
+  width:54px;
+  height:54px;
+  border-radius:50% 50% 50% 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 5px 0 #b38f40, 0 7px 15px rgba(0,0,0,0.3);
+  border:2px solid white;
+  animation:floatKahoot 2.5s ease-in-out infinite;
+  z-index:5;
+}
+
+@keyframes floatKahoot{
+  0%,100%{transform:translateX(-50%) translateY(0) rotate(0deg);}
+  25%{transform:translateX(-50%) translateY(-7px) rotate(-2deg);}
+  75%{transform:translateX(-50%) translateY(-4px) rotate(2deg);}
+}
+
+#pg-wrap{
+  position:absolute;
+  top:132px;
+  left:18px;
+  right:18px;
+  height:10px;
+  background:rgba(0,0,0,0.15);
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.2);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.2);
+}
+#pg-bar{
+  height:100%;
+  background:linear-gradient(90deg,#f9d423 0%,#ffaa00 50%,#ff8c00 100%);
+  width:0%;
+  transition:width 0.5s cubic-bezier(0.68,-0.55,0.27,1.55);
+  border-radius:12px;
+  box-shadow:0 0 15px #ffaa00;
+  position:relative;
+}
+#pg-bar::after{
+  content:'';
+  position:absolute;
+  top:0;
+  right:0;
+  width:6px;
+  height:100%;
+  background:white;
+  border-radius:50%;
+  box-shadow:0 0 12px white;
+}
+
+#content{
+  position:absolute;
+  top:150px;
+  left:0;
+  right:0;
+  bottom:12px;
+  display:flex;
+  gap:18px;
+  padding:0 18px 12px 18px;
+}
+
+#question-zone{
+  flex:1.5;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:#1a4d8c;
+  border-radius:30px 30px 30px 0;
+  backdrop-filter:blur(8px);
+  box-shadow:0 10px 0 #0e2d52, 0 15px 25px rgba(0,0,0,0.3);
+  border:2px solid #ffd966;
+  transform:skewX(-1deg);
+}
+
+#qnum{
+  font-size:16px;
+  font-weight:800;
+  color:#ffd966;
+  margin-bottom:10px;
+  background:#0e2d52;
+  padding:5px 18px;
+  border-radius:24px;
+  box-shadow:0 4px 0 #061a30;
+  letter-spacing:0.6px;
+}
+
+#qtext{
+  font-size:24px;
+  font-weight:800;
+  color:white;
+  text-align:center;
+  line-height:1.4;
+  text-shadow:3px 3px 0 #0e2d52;
+  padding:0 12px;
+}
+
+#choix-zone{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:12px;
+}
+
+/* === BOUTONS STYLE KAHOOT VERSION +20% === */
+.cbtn{
+  padding:19px 22px;
+  font-size:19px;
+  font-weight:800;
+  text-align:left;
+  border:none;
+  border-radius:22px 22px 22px 0;
+  color:white;
+  cursor:pointer;
+  transition:all 0.15s cubic-bezier(0.18,0.89,0.32,1.28);
+  box-shadow:0 7px 0 rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.3);
+  backdrop-filter:blur(8px);
+  position:relative;
+  overflow:hidden;
+  line-height:1.4;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  border-right:2px solid rgba(255,255,255,0.3);
+  border-bottom:2px solid rgba(255,255,255,0.2);
+}
+
+/* Couleurs différentes pour chaque bouton (style Kahoot) */
+.cbtn[data-choice="A"]{background:#d32f2f;} /* Rouge */
+.cbtn[data-choice="B"]{background:#1976d2;} /* Bleu */
+.cbtn[data-choice="C"]{background:#f57c00;} /* Orange */
+.cbtn[data-choice="D"]{background:#7b1fa2;} /* Violet */
+
+.cbtn::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+  transition:left 0.4s;
+}
+
+.cbtn:hover{
+  transform:translateY(-5px) translateX(3px) scale(1.01);
+  box-shadow:0 11px 0 rgba(0,0,0,0.3), 0 8px 18px rgba(0,0,0,0.4);
+  filter:brightness(1.1);
+}
+
+.cbtn:hover::before{left:100%;}
+
+.cbtn:active{
+  transform:translateY(0) translateX(0) scale(0.98);
+  box-shadow:0 4px 0 rgba(0,0,0,0.3);
+}
+
+.cbtn.correct{
+  background:#43a047 !important;
+  box-shadow:0 7px 0 #2e7d32, 0 0 24px #6fda6f;
+  animation:cpulseKahoot 0.4s ease;
+}
+
+.cbtn.incorrect{
+  background:#b71c1c !important;
+  box-shadow:0 7px 0 #8b0000, 0 0 24px #ff6b6b;
+  animation:shakeKahoot 0.4s ease;
+}
+
+.cbtn.disabled{
+  pointer-events:none;
+  opacity:0.9;
+  filter:grayscale(0.3);
+}
+
+@keyframes cpulseKahoot{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.06) translateY(-2px);}
+}
+
+@keyframes shakeKahoot{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-7px);}
+  40%{transform:translateX(7px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+
+#feedback{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  max-width:720px;
+  padding:18px 36px;
+  border-radius:48px;
+  font-size:19px;
+  font-weight:800;
+  text-align:center;
+  display:none;
+  z-index:1000;
+  animation:slideUpKahoot 0.4s cubic-bezier(0.18,0.89,0.32,1.28);
+  line-height:1.5;
+  backdrop-filter:blur(12px);
+  box-shadow:0 10px 0 rgba(0,0,0,0.3), 0 15px 30px rgba(0,0,0,0.4);
+  border:3px solid white;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+}
+
+#feedback.success{
+  background:#43a047;
+  color:white;
+}
+#feedback.error{
+  background:#d32f2f;
+  color:white;
+}
+#feedback.timeout{
+  background:#f57c00;
+  color:white;
+}
+
+@keyframes slideUpKahoot{
+  from{opacity:0;transform:translate(-50%,48px) scale(0.7);}
+  to{opacity:1;transform:translate(-50%,0) scale(1);}
+}
+
+/* === ÉCRAN D'ACCUEIL STYLE KAHOOT VERSION +20% === */
+#welcome{
+  display:flex;
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:15px;
+  padding:24px;
+  background:rgba(70, 23, 143, 0.5); /* Violet transparent 50% */
+  backdrop-filter:blur(7px);
+  border-radius:25px;
+}
+
+#welcome h1{
+  font-size:43px;
+  font-weight:900;
+  color:white;
+  text-align:center;
+  text-shadow:4px 4px 0 #2a0d57, 6px 6px 0 rgba(0,0,0,0.2);
+  transform:skewX(-1deg);
+  letter-spacing:0.6px;
+  margin-bottom:6px;
+}
+
+#welcome .eng-avatar{
+  font-size:60px;
+  margin:0;
+  filter:drop-shadow(6px 6px 0 #2a0d57);
+  background:#ffd966;
+  padding:15px;
+  border-radius:50% 50% 50% 0;
+  box-shadow:0 7px 0 #b38f40;
+}
+
+#welcome .wb{
+  background:rgba(255,255,255,0.95);
+  border-radius:30px 30px 30px 0;
+  padding:18px 30px;
+  text-align:center;
+  border:3px solid #ffd966;
+  backdrop-filter:blur(8px);
+  max-width:780px;
+  box-shadow:0 10px 0 #b38f40, 0 12px 24px rgba(0,0,0,0.3);
+}
+
+#welcome .wb p{
+  font-size:17px;
+  color:#2a0d57;
+  line-height:1.6;
+  margin:6px 0;
+  font-weight:600;
+}
+
+#welcome input{
+  padding:12px 24px;
+  font-size:18px;
+  border:3px solid #ffd966;
+  border-radius:36px;
+  width:300px;
+  text-align:center;
+  outline:none;
+  background:white;
+  font-weight:600;
+  box-shadow:0 5px 0 #b38f40;
+}
+
+.gbtn{
+  padding:15px 42px;
+  font-size:22px;
+  font-weight:800;
+  background:#ffd966;
+  color:#2a0d57;
+  border:none;
+  border-radius:36px 36px 36px 0;
+  cursor:pointer;
+  box-shadow:0 7px 0 #b38f40, 0 6px 15px rgba(0,0,0,0.3);
+  transition:all 0.15s ease;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  border-right:3px solid white;
+  border-bottom:3px solid white;
+}
+
+.gbtn:hover{
+  transform:translateY(-4px);
+  box-shadow:0 11px 0 #b38f40, 0 10px 22px rgba(0,0,0,0.4);
+  background:#ffe48f;
+}
+
+.gbtn:active{
+  transform:translateY(0);
+  box-shadow:0 5px 0 #b38f40;
+}
+
+/* === ÉCRAN FINAL STYLE KAHOOT AVEC FEEDBACK PERSONNALISÉ === */
+#final{
+  display:none;
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background:rgba(26, 77, 140, 0.5); /* Bleu transparent 50% */
+  backdrop-filter:blur(9px);
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  padding:24px;
+  text-align:center;
+  border-radius:25px;
+}
+
+#fscore{
+  font-size:72px;
+  font-weight:900;
+  color:#ffd966;
+  background:#0e2d52;
+  padding:18px 54px;
+  border-radius:48px 48px 48px 0;
+  backdrop-filter:blur(8px);
+  box-shadow:0 12px 0 #061a30, 0 18px 30px rgba(0,0,0,0.4);
+  border:3px solid white;
+  text-shadow:4px 4px 0 #061a30;
+}
+
+/* === NOUVEAU : ZONE DE FEEDBACK PERSONNALISÉ === */
+#final-feedback{
+  font-size:28px;
+  font-weight:800;
+  color:white;
+  background:rgba(255,255,255,0.15);
+  padding:15px 30px;
+  border-radius:40px 40px 40px 0;
+  backdrop-filter:blur(8px);
+  box-shadow:0 8px 0 rgba(0,0,0,0.2), 0 10px 20px rgba(0,0,0,0.3);
+  border:2px solid #ffd966;
+  max-width:600px;
+  line-height:1.4;
+  margin:10px 0;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+#final-message{
+  font-size:20px;
+  font-weight:600;
+  color:#ffd966;
+  background:rgba(0,0,0,0.3);
+  padding:12px 25px;
+  border-radius:30px;
+  backdrop-filter:blur(5px);
+  max-width:700px;
+  line-height:1.5;
+  border-left:4px solid #ffd966;
+  margin-bottom:5px;
+}
+
+#badge{
+  font-size:108px;
+  animation:bounceKahoot 2s infinite;
+  filter:drop-shadow(10px 10px 0 #0e2d52);
+}
+
+@keyframes bounceKahoot{
+  0%,100%{transform:translateY(0) rotate(0deg);}
+  25%{transform:translateY(-18px) rotate(-4deg);}
+  50%{transform:translateY(-24px) rotate(0deg);}
+  75%{transform:translateY(-15px) rotate(4deg);}
+}
+
+#badge-text{
+  font-size:34px;
+  font-weight:900;
+  background:#ffd966;
+  color:#0e2d52;
+  padding:15px 42px;
+  border-radius:36px 36px 36px 0;
+  backdrop-filter:blur(8px);
+  box-shadow:0 7px 0 #b38f40, 0 12px 24px rgba(0,0,0,0.3);
+  border:3px solid white;
+  text-transform:uppercase;
+}
+
+/* Ajustements responsifs */
+@media (max-width: 1080px) {
+  #qc { transform:scale(0.9); }
+}
+</style>
+</head>
+<body>
+<div id="qc">
+  <div id="score">Score: 0</div>
+  <div id="pn"></div>
+  <div id="timer">30</div>
+  <div id="avatar">👷</div>
+  <div id="pg-wrap"><div id="pg-bar"></div></div>
+
+  <!-- Écran bienvenue -->
+  <div id="welcome">
+    <h1>🌍 Mission Solarius</h1>
+    <div class="eng-avatar">👷‍♂️</div>
+    <div class="wb">
+      <p>🎉 <strong>Félicitations !</strong> Tu as terminé les 3 premières missions :</p>
+      <p>✅ Mission 1 : Découverte des énergies</p>
+      <p>✅ Mission 2 : Sources d'énergie</p>
+      <p>✅ Mission 3 : Impact environnemental</p>
+      <p style="color:#2a0d57;font-weight:800;font-size:18px;margin-top:10px">⚡ La ville de <strong>Solarius</strong> compte sur toi pour l'étape finale !</p>
+    </div>
+    <input type="text" id="sn" placeholder="✏️ Entre ton prénom...">
+    <button class="gbtn" id="sb">🚀 Commencer la Mission</button>
+  </div>
+
+  <!-- Zone de jeu -->
+  <div id="content" style="display:none">
+    <div id="question-zone">
+      <div id="qnum">Question 1/10</div>
+      <div id="qtext"></div>
+    </div>
+    <div id="choix-zone">
+      <div class="cbtn" data-choice="A"></div>
+      <div class="cbtn" data-choice="B"></div>
+      <div class="cbtn" data-choice="C"></div>
+    </div>
+  </div>
+
+  <div id="feedback"></div>
+
+  <!-- Écran final avec feedback personnalisé -->
+  <div id="final">
+    <div id="badge">🏆</div>
+    <div id="fscore"></div>
+    <div id="final-feedback"></div> <!-- Nouveau : feedback personnalisé -->
+    <div id="final-message"></div>  <!-- Nouveau : message détaillé -->
+    <div id="badge-text"></div>
+    <button class="gbtn" id="rb">🔄 Rejouer</button>
+  </div>
+</div>
+
+<script>
+var questions=[
+  {q:"Qu'est-ce que l'énergie ?",c:["Une force qui permet d'effectuer un travail","Uniquement l'électricité dans les maisons","Seulement le pétrole et le charbon"],ok:"A",fb_ok:"✓ Exact ! L'énergie est une force qui permet d'effectuer un travail : se chauffer, s'éclairer, se déplacer.",fb_no:"✗ Non. L'énergie est une force qui permet d'effectuer un travail (se chauffer, s'éclairer...)."},
+  {q:"Lesquelles sont des énergies NON renouvelables ?",c:["Soleil, vent, eau","Pétrole, charbon, gaz naturel, uranium","Biomasse, géothermie"],ok:"B",fb_ok:"✓ Parfait ! Le pétrole, charbon, gaz et uranium sont des énergies fossiles limitées et non renouvelables.",fb_no:"✗ Non. Les énergies NON renouvelables sont : pétrole, charbon, gaz naturel et uranium."},
+  {q:"Quelle énergie utilise le rayonnement du soleil ?",c:["Énergie éolienne","Énergie nucléaire","Énergie solaire"],ok:"C",fb_ok:"✓ Bravo ! L'énergie solaire utilise les panneaux photovoltaïques pour capter le rayonnement du soleil.",fb_no:"✗ Non. C'est l'énergie SOLAIRE qui utilise le rayonnement du soleil."},
+  {q:"Quelle énergie utilise la force du vent ?",c:["Énergie éolienne","Énergie hydraulique","Charbon"],ok:"A",fb_ok:"✓ Correct ! L'énergie éolienne utilise des éoliennes pour transformer la force du vent en électricité.",fb_no:"✗ Non. C'est l'énergie ÉOLIENNE qui utilise la force du vent."},
+  {q:"Quelle énergie utilise la force de l'eau ?",c:["Biomasse","Énergie hydraulique","Géothermie"],ok:"B",fb_ok:"✓ Excellent ! L'énergie hydraulique utilise la force de l'eau (barrages) pour produire de l'électricité.",fb_no:"✗ Non. C'est l'énergie HYDRAULIQUE qui utilise la force de l'eau."},
+  {q:"Quelle énergie utilise le bois et les déchets organiques ?",c:["Énergie solaire","Énergie nucléaire","Biomasse"],ok:"C",fb_ok:"✓ Parfait ! La biomasse utilise le bois, les déchets organiques et agricoles pour produire de l'énergie.",fb_no:"✗ Non. C'est la BIOMASSE qui utilise le bois et les déchets organiques."},
+  {q:"Quelle énergie utilise la chaleur du sous-sol de la Terre ?",c:["Géothermie","Énergie hydraulique","Gaz naturel"],ok:"A",fb_ok:"✓ Exact ! La géothermie exploite la chaleur naturelle du sous-sol terrestre.",fb_no:"✗ Non. C'est la GÉOTHERMIE qui utilise la chaleur du sous-sol."},
+  {q:"Quel est le principal avantage des énergies renouvelables ?",c:["Elles sont plus chères à produire","Elles réduisent les émissions de gaz à effet de serre","Elles polluent autant que les fossiles"],ok:"B",fb_ok:"✓ Bravo ! Les énergies renouvelables réduisent le CO2 et les gaz à effet de serre responsables du réchauffement.",fb_no:"✗ Non. L'avantage principal est la RÉDUCTION des émissions de gaz à effet de serre."},
+  {q:"Quelles sont les 3 grandes énergies renouvelables à grande échelle ?",c:["Charbon, Pétrole, Gaz naturel","Nucléaire, Biomasse, Géothermie","Hydroélectricité, Éolien, Solaire"],ok:"C",fb_ok:"✓ Parfait ! Les 3 grandes : hydroélectricité (barrages), éolien (éoliennes) et solaire (panneaux).",fb_no:"✗ Non. Les 3 grandes énergies renouvelables sont : Hydroélectricité, Éolien et Solaire."},
+  {q:"Pourquoi faut-il réduire notre consommation d'énergies fossiles ?",c:["Pour économiser de l'argent uniquement","Parce qu'elles sont inépuisables","Elles causent pollution et changement climatique"],ok:"C",fb_ok:"✓ Excellent ! Les énergies fossiles polluent l'air, émettent du CO2 et causent le réchauffement climatique.",fb_no:"✗ Non. Les énergies fossiles POLLUENT et causent le changement CLIMATIQUE."}
+];
+
+var cur=0,score=0,name="Joueur",answered=false,tLeft=30,tInt=null;
+
+function $(i){return document.getElementById(i)}
+
+function start(){
+  var v=$("sn").value.trim()||"Joueur";
+  if(v.length<2){alert("Prénom minimum 2 caractères");return}
+  name=v;
+  $("pn").textContent="👤 "+name;
+  $("welcome").style.display="none";
+  $("content").style.display="flex";
+  $("score").style.display="block";
+  $("timer").style.display="block";
+  $("avatar").style.display="flex";
+  loadQ();startTimer();
+}
+
+function loadQ(){
+  if(cur>=questions.length){showFinal();return}
+  var q=questions[cur];
+  $("qnum").textContent="Question "+(cur+1)+"/"+questions.length;
+  $("qtext").textContent=q.q;
+  var btns=document.querySelectorAll(".cbtn");
+  btns.forEach(function(b,i){
+    b.textContent=String.fromCharCode(65+i)+") "+q.c[i];
+    b.className="cbtn";
+  });
+  var pgEl=$("pg-bar");
+  pgEl.style.width=Math.round((cur/questions.length)*100)+"%";
+  answered=false;
+  tLeft=30;
+  $("timer").textContent=tLeft;
+  $("timer").classList.remove("warn");
+}
+
+function startTimer(){
+  clearInterval(tInt);
+  tInt=setInterval(function(){
+    tLeft--;
+    $("timer").textContent=tLeft;
+    if(tLeft<=10)$("timer").classList.add("warn");
+    if(tLeft<=0){
+      clearInterval(tInt);
+      if(!answered){
+        answered=true;
+        var btns=document.querySelectorAll(".cbtn");
+        btns.forEach(function(b){
+          b.classList.add("disabled");
+          if(b.getAttribute("data-choice")===questions[cur].ok)b.classList.add("correct");
+        });
+        showFB("⏰ Temps écoulé ! La bonne réponse était : "+questions[cur].ok,false,true);
+        setTimeout(nextQ,3000);
+      }
+    }
+  },1000);
+}
+
+function pick(btn){
+  if(answered)return;
+  answered=true;
+  clearInterval(tInt);
+  var q=questions[cur];
+  var ch=btn.getAttribute("data-choice");
+  var ok=(ch===q.ok);
+  var btns=document.querySelectorAll(".cbtn");
+  btns.forEach(function(b){
+    b.classList.add("disabled");
+    if(b.getAttribute("data-choice")===q.ok)b.classList.add("correct");
+    else if(b===btn&&!ok)b.classList.add("incorrect");
+  });
+  if(ok){
+    score+=10;
+    $("score").textContent="Score: "+score;
+  }
+  showFB(ok?q.fb_ok:q.fb_no,ok,false);
+  setTimeout(nextQ,3000);
+}
+
+function showFB(msg,ok,to){
+  var f=$("feedback");
+  f.textContent=msg;
+  f.className=to?"timeout":(ok?"success":"error");
+  f.style.display="block";
+  setTimeout(function(){f.style.display="none"},2800);
+}
+
+function nextQ(){
+  cur++;
+  if(cur<questions.length){loadQ();startTimer();}
+  else showFinal();
+}
+
+/* === NOUVELLE FONCTION : FEEDBACK FINAL PERSONNALISÉ === */
+function getFinalFeedback(score, name) {
+  var percentage = score; // score sur 100
+  
+  if (percentage >= 90) {
+    return {
+      feedback: "🌟 GÉNIE DE L'ÉNERGIE ! 🌟",
+      message: name + ", tu es un véritable expert ! La ville de Solarius te remercie pour ton savoir exceptionnel !",
+      badge: "🏆",
+      text: "LÉGENDE VERTE"
+    };
+  } else if (percentage >= 80) {
+    return {
+      feedback: "💚 EXPERT ÉCOLOGIQUE ! 💚",
+      message: name + ", tu maîtrises parfaitement les énergies ! Solarius peut compter sur toi !",
+      badge: "🏆",
+      text: "CHAMPION ÉCOLO"
+    };
+  } else if (percentage >= 70) {
+    return {
+      feedback: "🌿 TRÈS BON NIVEAU ! 🌿",
+      message: "Bravo " + name + " ! Tu as une solide connaissance des énergies. Continue comme ça !",
+      badge: "🥈",
+      text: "EXCELLENT"
+    };
+  } else if (percentage >= 60) {
+    return {
+      feedback: "🍃 BON TRAVAIL ! 🍃",
+      message: name + ", tu as de bonnes bases ! Quelques révisions et tu deviendras un expert !",
+      badge: "🥉",
+      text: "BIEN"
+    };
+  } else if (percentage >= 50) {
+    return {
+      feedback: "🌱 PAS MAL DU TOUT ! 🌱",
+      message: name + ", tu es sur la bonne voie ! Continue à apprendre sur les énergies renouvelables.",
+      badge: "📚",
+      text: "EN PROGRÈS"
+    };
+  } else if (percentage >= 30) {
+    return {
+      feedback: "💪 PEUX MIEUX FAIRE ! 💪",
+      message: name + ", tu as fait un effort ! Rejoue pour améliorer ton score et devenir un expert Solarius !",
+      badge: "🌱",
+      text: "APPRENTI"
+    };
+  } else {
+    return {
+      feedback: "🔄 À REJOUER D'URGENCE ! 🔄",
+      message: name + ", les énergies n'ont plus de secrets pour toi ? Rejoue pour les découvrir ! Solarius a besoin de toi !",
+      badge: "📖",
+      text: "DÉBUTANT"
+    };
+  }
+}
+
+function showFinal(){
+  clearInterval(tInt);
+  $("content").style.display="none";
+  $("score").style.display="none";
+  $("timer").style.display="none";
+  $("avatar").style.display="none";
+  $("pg-bar").style.width="100%";
+  
+  var feedback = getFinalFeedback(score, name);
+  
+  var f=$("final");
+  f.style.display="flex";
+  $("fscore").textContent=score+"/100";
+  $("final-feedback").textContent=feedback.feedback;
+  $("final-message").textContent=feedback.message;
+  $("badge").textContent=feedback.badge;
+  $("badge-text").textContent=feedback.text;
+}
+
+function restart(){
+  cur=0;score=0;answered=false;
+  $("score").textContent="Score: 0";
+  $("score").style.display="none";
+  $("timer").style.display="none";
+  $("avatar").style.display="none";
+  $("pg-bar").style.width="0%";
+  $("sn").value=name;
+  $("final").style.display="none";
+  $("welcome").style.display="flex";
+}
+
+setTimeout(function(){
+  var sb=$("sb");if(sb)sb.addEventListener("click",start);
+  var rb=$("rb");if(rb)rb.addEventListener("click",restart);
+  var ni=$("sn");if(ni)ni.addEventListener("keypress",function(e){if(e.keyCode===13)start()});
+  document.querySelectorAll(".cbtn").forEach(function(b){
+    b.addEventListener("click",function(){pick(b)});
+  });
+},100);
+</script>
+</body>
+</html>
